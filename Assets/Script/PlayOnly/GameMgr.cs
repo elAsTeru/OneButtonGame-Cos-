@@ -6,15 +6,19 @@ using UnityEngine.SceneManagement;
 
 public class GameMgr : MonoBehaviour
 {
+    [Header("ゲームの設定")]
+    [Tooltip("出題される回数")][SerializeField] private int taskNum;
+    [Tooltip("課題の達成回数(読専)")][SerializeField] private int taskClearCounter;
+
     [Header("プレイヤーの情報")]
-    [Tooltip("アタッチ確認用(読専)")][SerializeField] private Player player;
+    private Player player;
     [Tooltip("true:かまえ状態 / false:居合状態(読専)")][SerializeField] private bool spaceKeyState;
     private bool prevSpaceKeyState; //前回のスペースキーの状態
     [Space(10)]
 
     [Header("敵の情報")]
-    [Tooltip("アタッチ確認用(読専)")][SerializeField] private EnemyMgr enemyMgr;
-    [Tooltip("お題の敵(読専)")][SerializeField] private GameObject themeObj;
+    private EnemyMgr enemyMgr;
+    [Tooltip("お題の敵(読専)")][SerializeField] private GameObject taskObj;
     [Tooltip("現在の敵(読専)")][SerializeField] private GameObject activeEnemyObj;
     [Tooltip("アクティブ化待機時間の範囲(x:最小時間 / y:最大時間)")][SerializeField] private Vector2 activateTimeRange;
     [Tooltip("アクティブ化待機時間(読専)")][SerializeField]private float activateWaitTime; //範囲ランダムでアクティブ命令を出す時間を格納する用(-1で設定なし)
@@ -23,16 +27,19 @@ public class GameMgr : MonoBehaviour
     [Space(10)]
 
     [Header("UIの情報")]
-    [Tooltip("お題表示仮置き画像")][SerializeField] private Image themeImg;
+    [Tooltip("お題表示仮置き画像")][SerializeField] private Image taskImg;
+    [Tooltip("かまえ表示仮置き")][SerializeField] private GameObject kamaePanel;
 
     [Header("共有して使用")]
     [SerializeField] private float timer;
 
-    // Start is called before the first frame update
+
     void Start()
     {
-        ////クリア回数を0にする
-        //cleartargetNum = 0;
+        //-------------------------------------------------------
+        //Game Settings
+        //-------------------------------------------------------
+        taskClearCounter = 0;
 
         //-------------------------------------------------------
         //Player
@@ -52,15 +59,20 @@ public class GameMgr : MonoBehaviour
         //UI
         //-------------------------------------------------------
         //お題表示仮置きの画像を取得
-        themeImg = GameObject.Find("標的表示仮置き").GetComponent<Image>();
-        themeImg.enabled = false;           //非表示にしておく
+        taskImg = GameObject.Find("標的表示仮置き").GetComponent<Image>();
+        taskImg.enabled = false;           //非表示にしておく
+        kamaePanel = GameObject.Find("kamae");
+        kamaePanel.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
         //お題が無ければ
-        if (themeObj == null) { Init(); }
+        if (taskObj == null && spaceKeyState == false)
+        {
+            Init();
+        }
         //-------------------------------------------------------
         //スペースキーが押されている(構えの状態)
         //-------------------------------------------------------
@@ -73,9 +85,14 @@ public class GameMgr : MonoBehaviour
                 timer = 0;
             }
             //お題が表示されていたら非表示にする
-            if (themeImg.enabled == true)
+            if (taskImg.enabled == true)
             {
-                themeImg.enabled = false;
+                taskImg.enabled = false;
+            }
+            //かまえが表示されていたら非表示にする
+            if(kamaePanel.active == true)
+            {
+                kamaePanel.SetActive(false);
             }
             //-------------------------------------------------------
             //敵のアクティブ化
@@ -106,7 +123,7 @@ public class GameMgr : MonoBehaviour
             //-------------------------------------------------------
             //アクティブ化した敵が目標と不一致
             //-------------------------------------------------------
-            else if (activeEnemyObj != themeObj)
+            else if (activeEnemyObj != taskObj)
             {
                 //時間を計測
                 timer += Time.deltaTime;
@@ -128,7 +145,7 @@ public class GameMgr : MonoBehaviour
         //-------------------------------------------------------
         //スペースキーが離された(居合の状態)
         //-------------------------------------------------------
-        else if(themeObj != null)
+        else if(taskObj != null)
         {
             //スペースキーの状態が切り替わったときに１回だけ実行
             if (spaceKeyState != prevSpaceKeyState)
@@ -139,11 +156,17 @@ public class GameMgr : MonoBehaviour
             timer += Time.deltaTime;
 
             //ターゲット達成の仮置き
-            if(themeObj == activeEnemyObj)
+            if(taskObj == activeEnemyObj)
             {
                 activeEnemyObj.SetActive(false);
                 activeEnemyObj = null;
-                themeObj = null;
+                taskObj = null;
+                ++taskClearCounter;
+            }
+
+            if(taskClearCounter >= taskNum)
+            {
+                SceneManager.LoadScene("Result");
             }
         }
 
@@ -181,12 +204,6 @@ public class GameMgr : MonoBehaviour
         //        enemyGenMgr.SetActive(true);    //全体のアクティブを変える方法
         //    }
         //}
-
-        ////クリア回数が設定回数になったらリザルトに遷移
-        //if(cleartargetNum >= targetNum)
-        //{
-        //    SceneManager.LoadScene("Result");
-        //}
     }
 
     //-------------------------------------------------------
@@ -200,9 +217,11 @@ public class GameMgr : MonoBehaviour
     private void Init()
     {
         //EnemyMgrにお題生成の命令を出す(gameobjct型かstring型で作られたお題を返すもの)
-        themeObj = enemyMgr.GenerateTheme();
+        taskObj = enemyMgr.GenerateTask();
         //お題を表示する(仮置きで白い画面を表示しておく)
-        themeImg.enabled = true;
+        taskImg.enabled = true;
+        //かまえを表示する
+        kamaePanel.SetActive(true);
     }
 
     //-------------------------------------------------------

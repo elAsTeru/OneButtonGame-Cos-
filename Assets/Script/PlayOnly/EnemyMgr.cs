@@ -52,7 +52,7 @@ public class EnemyMgr : MonoBehaviour
     /// ‚¨‘è¶¬‚Ìw¦‚ğó‚¯¶¬‚·‚é
     /// </summary>
     /// <returns>¶¬‚µ‚½‚¨‘è(GameObject)</returns>
-    public GameObject GenerateTheme()
+    public GameObject GenerateTask()
     {
         GameObject themeObj;
 
