@@ -360,7 +360,7 @@ GameObject:
   - component: {fileID: 330957512}
   - component: {fileID: 330957513}
   m_Layer: 0
-  m_Name: PlayMgr
+  m_Name: GameMgr
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -393,10 +393,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d1b1f3183ae1464fa98aa99d3111e04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   spaceKeyState: 0
-  targetNum: 5
-  cleartargetNum: 0
-  printTargetObj: {fileID: 1968133077}
+  enemyMgr: {fileID: 0}
+  themeObj: {fileID: 0}
+  activeEnemyObj: {fileID: 0}
+  activateTimeRange: {x: 2, y: 4}
+  activateWaitTime: 0
+  deactivateTimeRange: {x: 2, y: 2}
+  deactiveWaitTime: 0
+  themeImg: {fileID: 0}
+  timer: 0
 --- !u!1 &512253001
 GameObject:
   m_ObjectHideFlags: 0

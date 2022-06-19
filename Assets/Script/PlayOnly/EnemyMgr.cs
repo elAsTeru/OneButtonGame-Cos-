@@ -45,70 +45,37 @@ public class EnemyMgr : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    //-------------------------------------------------------
+    //Public Method For GameMgr
+    //-------------------------------------------------------
+    /// <summary>
+    /// お題生成の指示を受け生成する
+    /// </summary>
+    /// <returns>生成したお題(GameObject)</returns>
+    public GameObject GenerateTheme()
     {
-        //目標作成
-        CreateTarget();
+        GameObject themeObj;
 
-        //新たにアクティブ化したか？
-        if(ActivateEnemy())
-        {
-            //timerをリセット
-            timer = 0;
-        }
+        themeObj = poolSpace.transform.GetChild(Random.Range(0, enemyTypeNum)).gameObject;
 
-        //時間を計測
-        timer += Time.deltaTime;
-
-        //アクティブなのが目標以外なら
-        if (!targetEnemyIsActive)
-        {
-            //2秒後に非アクティブにして、生成停止を復帰する
-            if (timer > 2)
-            {
-                activateEnemy.gameObject.SetActive(false);
-                isGenerate = true;
-            }
-        }
+        return themeObj;
     }
 
     /// <summary>
-    /// 目標が設定されてなければ、敵として登録されている中からランダムに目標を選び登録する。
+    /// アクティブ化の指示を受けランダムでアクティブ化する
     /// </summary>
-    private void CreateTarget()
+    /// <returns>アクティブ化した敵(GameObject)</returns>
+    public GameObject ActivateEnemyRandom()
     {
-        if (targetEnemy == null)
-        {
-            targetEnemy = poolSpace.transform.GetChild(Random.Range(0, enemyTypeNum)).gameObject;
-            isGenerate = true;
-        }
-    }
-
-    /// <summary>
-    /// ジェネレータが稼働なら敵をアクティブ化する
-    /// </summary>
-    private bool ActivateEnemy()
-    {
-        if (isGenerate)
-        {
-            //どの敵をアクティブにするか？
-            activateEnemy = poolSpace.transform.GetChild((short)Random.Range(0, enemyTypeNum));
-            //敵のアクティブ化位置を設定
-            activateEnemy.position = generatorSpace.transform.GetChild(Random.Range(0, generatorNum)).position;
-            //敵をアクティブ状態に変更
-            activateEnemy.gameObject.SetActive(true);
-            //アクティブになった敵は目標ならフラグを立てる
-            if (activateEnemy.gameObject == targetEnemy)
-            {
-                targetEnemyIsActive = true;
-            }
-            //生成を一時停止する
-            isGenerate = false;
-
-            return true;
-        }
-        return false;
+        GameObject activateEnemyObj;
+        //どの敵をアクティブ化するか？
+        activateEnemyObj = poolSpace.transform.GetChild((short)Random.Range(0, enemyTypeNum)).gameObject;
+        //アクティブ化する場所を設定
+        activateEnemyObj.transform.position = generatorSpace.transform.GetChild(Random.Range(0, generatorNum)).position;
+        //アクティブ化
+        activateEnemyObj.SetActive(true);
+        //アクティブ化した敵オブジェクトを返す
+        return activateEnemyObj;
     }
 
     /// <summary>

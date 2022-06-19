@@ -36,7 +36,6 @@ public class ObjectPool : MonoBehaviour
     /// <param name="_setPos">アクティブにするときの位置</param>
     public GameObject SetActive(GameObject _poolingSpace, Vector3 _setPos)
     {
-     
         //非アクティブオブジェクトをプールの中から探索
         foreach (Transform t in _poolingSpace.transform)
         {
