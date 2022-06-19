@@ -6,6 +6,10 @@ using UnityEngine.SceneManagement;
 
 public class PlayMgr : MonoBehaviour
 {
+    [Header("プレイヤーの情報")]
+    private Player player;
+    [Tooltip("true:かまえ状態 / false:居合状態")][SerializeField]private bool spaceKeyState;
+
     [Header("PlaySetting")]
     private GameObject enemyGenMgr;        //生成管理用のオブジェクトが入る
     [Tooltip("出されるお題の数")][SerializeField] private short targetNum;
@@ -14,9 +18,6 @@ public class PlayMgr : MonoBehaviour
 
     //UI関連
     [SerializeField]private GameObject printTargetObj;
-
-    //プレイヤー関連(仮置き)
-    [SerializeField]private TempPlayer tempPlayer;
 
     // Start is called before the first frame update
     void Start()
@@ -31,8 +32,8 @@ public class PlayMgr : MonoBehaviour
         printTargetObj.GetComponent<Image>().enabled = true;
 
         //プレイヤーのスクリプトを確保
-        tempPlayer = GameObject.Find("Player(temp)").GetComponent<TempPlayer>();
-        tempPlayer.enabled = false;
+        player = GameObject.Find("Player").GetComponent<Player>();
+        player.enabled = false;
     }
 
     // Update is called once per frame
@@ -46,14 +47,22 @@ public class PlayMgr : MonoBehaviour
             {
                 //標的表示仮置きを非表示に
                 printTargetObj.GetComponent<Image>().enabled = false;
+                //プレイヤーの処理を開始
+                player.enabled = true;      //特定のコンポーネントやスクリプトが有効かを変える方法
             }
         }
         else
         {
-            //敵管理の処理を開始する
-            enemyGenMgr.SetActive(true);    //全体のアクティブを変える方法
-            //プレイヤーの処理を開始
-            tempPlayer.enabled = true;      //特定のコンポーネントやスクリプトが有効かを変える方法
+            if (spaceKeyState == true)
+            {
+                //敵管理の処理を開始する
+                enemyGenMgr.SetActive(false);    //全体のアクティブを変える方法
+            }
+            else
+            {
+                //敵管理の処理を開始する
+                enemyGenMgr.SetActive(true);    //全体のアクティブを変える方法
+            }
         }
 
         //クリア回数が設定回数になったらリザルトに遷移
@@ -62,6 +71,11 @@ public class PlayMgr : MonoBehaviour
             SceneManager.LoadScene("Result");
         }
     }
+
+
+    //Public Method For Player
+    public void Kamae() { spaceKeyState = true; }
+    public void Iai() { spaceKeyState = false; }
 
     /// <summary>
     /// プレイヤーがお題をクリアしたのを伝えるために使用
