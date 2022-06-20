@@ -8,16 +8,12 @@ public class EnemyMgr : MonoBehaviour
     [Header("Enemy")]
     [Tooltip("生成するプレハブをアタッチ")][SerializeField] private List<GameObject> enemys;
     [Tooltip("デバッグ用")][SerializeField] private short enemyTypeNum;
-    [Tooltip("デバッグ用")][SerializeField] private GameObject targetEnemy;     //お題になっている敵が入る
-    private bool targetEnemyIsActive;
     [Tooltip("デバッグ用")][SerializeField] private float timer;
-    [Tooltip("デバッグ用")][SerializeField] private Transform activateEnemy;      //アクティブ化する敵を格納するよう
 
     //ジェネレータ関連
     [Header("Generator")]
     [Tooltip("ジェネレータをまとめた空間")] private GameObject generatorSpace;
     [Tooltip("デバッグ用")][SerializeField] private short generatorNum;
-    [Tooltip("デバッグ用")][SerializeField] private bool isGenerate;      //生成フラグ
 
     //オブジェクトプール関連
     [Header("Object Pool")]
@@ -51,12 +47,16 @@ public class EnemyMgr : MonoBehaviour
     /// <summary>
     /// お題生成の指示を受け生成する
     /// </summary>
+    /// <param name="_removeObj">お題にして欲しくない敵を入れる / null:設定なし</param>
     /// <returns>生成したお題(GameObject)</returns>
-    public GameObject GenerateTask()
+    public GameObject GenerateTask(GameObject _removeObj)
     {
-        GameObject themeObj;
-
-        themeObj = poolSpace.transform.GetChild(Random.Range(0, enemyTypeNum)).gameObject;
+        //同じにしておくことで条件式の数を減らせる
+        GameObject themeObj = _removeObj;
+        while (themeObj == _removeObj)
+        {
+            themeObj = poolSpace.transform.GetChild(Random.Range(0, enemyTypeNum)).gameObject;
+        }
 
         return themeObj;
     }
