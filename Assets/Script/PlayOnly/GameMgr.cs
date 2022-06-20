@@ -27,8 +27,10 @@ public class GameMgr : MonoBehaviour
     [Space(10)]
 
     [Header("UIの情報")]
-    [Tooltip("お題表示仮置き画像")][SerializeField] private Image taskImg;
-    [Tooltip("かまえ表示仮置き")][SerializeField] private GameObject kamaePanel;
+    private Image taskImg;   //お題表示の仮置き画像
+    [Tooltip("お題表示時間")] [SerializeField] private float showTaskTime;
+    private bool showTaskFlag;  //true:タスク表示中/false:タスク非表示中
+    private GameObject kamaePanel;    //かまえ表示の仮置き
 
     [Header("共有して使用")]
     [SerializeField] private float timer;
@@ -69,159 +71,194 @@ public class GameMgr : MonoBehaviour
     void Update()
     {
         //お題が無ければ
-        if (taskObj == null && spaceKeyState == false)
+        if (CheckTask())
         {
-            Init();
+            //お題を生成
+            GenerateTask();
         }
-        //-------------------------------------------------------
-        //スペースキーが押されている(構えの状態)
-        //-------------------------------------------------------
-        if (spaceKeyState == true)
+        else
         {
-            //スペースキーの状態が切り替わったときに１回だけ実行
-            if(spaceKeyState != prevSpaceKeyState)
+            //お題が表示されているか
+            if(CheckShowTask())
             {
-                prevSpaceKeyState = spaceKeyState;
-                timer = 0;
-            }
-            //お題が表示されていたら非表示にする
-            if (taskImg.enabled == true)
-            {
-                taskImg.enabled = false;
-            }
-            //かまえが表示されていたら非表示にする
-            if(kamaePanel.active == true)
-            {
-                kamaePanel.SetActive(false);
-            }
-            //-------------------------------------------------------
-            //敵のアクティブ化
-            //-------------------------------------------------------
-            //アクティブな敵がいなければ
-            if (activeEnemyObj == null)
-            {
-                //時間を計測
                 timer += Time.deltaTime;
-                //ランダムな時間でアクティブ化命令をenemymgrに出す(返り値でそれを取得)
-                if (activateWaitTime == -1)
+                //一定時間をすぎたら
+                if (timer > showTaskTime)
                 {
-                    activateWaitTime = Random.Range(activateTimeRange.x, activateTimeRange.y);
+                    //お題の表示を消し
+                    taskImg.enabled = false;
+                    //かまえの操作補助を表示する
+                    kamaePanel.SetActive(true);
                     //タイマーリセット
                     timer = 0;
                 }
-                //範囲で設定された待ち時間を超えたらアクティブ化命令をEnemyMgrに出す
-                //+アクティブ化したオブジェクトを返り値で取得する
-                else if (timer >= activateWaitTime)
-                {
-                    activeEnemyObj = enemyMgr.ActivateEnemyRandom();
-                    //待ち時間の設定を空の状態にする
-                    activateWaitTime = -1;
-                    //タイマーをリセット
-                    timer = 0;
-                }
             }
-            //-------------------------------------------------------
-            //アクティブ化した敵が目標と不一致
-            //-------------------------------------------------------
-            else if (activeEnemyObj != taskObj)
+            else
             {
-                //時間を計測
-                timer += Time.deltaTime;
-                //非アクティブにする時間が設定されてなければ
-                if (deactiveWaitTime == -1)
+                //-------------------------------------------------------
+                //スペースキーが押されている(構えの状態)
+                //-------------------------------------------------------
+                if (SpaceKeyCheck())
                 {
-                    deactiveWaitTime = Random.Range(deactivateTimeRange.x, deactivateTimeRange.y);
-                    //タイマーリセット
-                    timer = 0;
+                    //かまえが表示されていたら非表示にする
+                    if (kamaePanel.active == true)
+                    {
+                        kamaePanel.SetActive(false);
+                    }
+                    //-------------------------------------------------------
+                    //敵のアクティブ化
+                    //-------------------------------------------------------
+                    //アクティブな敵がいなければ
+                    if (activeEnemyObj == null)
+                    {
+                        //時間を計測
+                        timer += Time.deltaTime;
+                        //ランダムな時間でアクティブ化命令をenemymgrに出す(返り値でそれを取得)
+                        if (activateWaitTime == -1)
+                        {
+                            activateWaitTime = Random.Range(activateTimeRange.x, activateTimeRange.y);
+                            //タイマーリセット
+                            timer = 0;
+                        }
+                        //範囲で設定された待ち時間を超えたらアクティブ化命令をEnemyMgrに出す
+                        //+アクティブ化したオブジェクトを返り値で取得する
+                        else if (timer >= activateWaitTime)
+                        {
+                            activeEnemyObj = enemyMgr.ActivateEnemyRandom();
+                            //待ち時間の設定を空の状態にする
+                            activateWaitTime = -1;
+                            //タイマーをリセット
+                            timer = 0;
+                        }
+                    }
+                    //-------------------------------------------------------
+                    //アクティブ化した敵が目標と不一致(一定時間で非アクティブにする)
+                    //-------------------------------------------------------
+                    else if (activeEnemyObj != taskObj)
+                    {
+                        //時間を計測
+                        timer += Time.deltaTime;
+                        //非アクティブにする時間が設定されてなければ
+                        if (deactiveWaitTime == -1)
+                        {
+                            deactiveWaitTime = Random.Range(deactivateTimeRange.x, deactivateTimeRange.y);
+                            //タイマーリセット
+                            timer = 0;
+                        }
+                        //アクティブ化してから非アクティブにする時間が経っていたら
+                        else if (timer >= deactiveWaitTime)
+                        {
+                            activeEnemyObj.SetActive(false);
+                            activeEnemyObj = null;
+                        }
+                    }
                 }
-                //アクティブ化してから非アクティブにする時間が経っていたら
-                else if (timer >= deactiveWaitTime)
+                else
                 {
-                    activeEnemyObj.SetActive(false);
-                    activeEnemyObj = null;
+                    timer += Time.deltaTime;
+
+                    //ターゲット達成の仮置き
+                    if (taskObj == activeEnemyObj)
+                    {
+                        activeEnemyObj.SetActive(false);
+                        activeEnemyObj = null;
+                        taskObj = null;
+                        ++taskClearCounter;
+                    }
+
+                    if (taskClearCounter >= taskNum)
+                    {
+                        SceneManager.LoadScene("Result");
+                    }
                 }
             }
+           
         }
-        //-------------------------------------------------------
-        //スペースキーが離された(居合の状態)
-        //-------------------------------------------------------
-        else if(taskObj != null)
-        {
-            //スペースキーの状態が切り替わったときに１回だけ実行
-            if (spaceKeyState != prevSpaceKeyState)
-            {
-                prevSpaceKeyState = spaceKeyState;
-                timer = 0;
-            }
-            timer += Time.deltaTime;
+        
 
-            //ターゲット達成の仮置き
-            if(taskObj == activeEnemyObj)
-            {
-                activeEnemyObj.SetActive(false);
-                activeEnemyObj = null;
-                taskObj = null;
-                ++taskClearCounter;
-            }
-
-            if(taskClearCounter >= taskNum)
-            {
-                SceneManager.LoadScene("Result");
-            }
-        }
-
-        //お題と比較し、違えば一定時間で非アクティブに
 
         //お題と比較し、合致すれば消さずプレイヤーのスペースが離されるのを待つ
 
         //離されたら時間計測を終了/Initの内容を実行/クリア回数をカウント
 
 
-
-
-        ////もし標的表示仮置きが表示されていたら
-        //if (printTargetObj.GetComponent<Image>().enabled)
-        //{
-        //    //スペースが押されたら
-        //    if (Input.GetKeyDown(KeyCode.Space))
-        //    {
-        //        //標的表示仮置きを非表示に
-        //        printTargetObj.GetComponent<Image>().enabled = false;
-        //        //プレイヤーの処理を開始
-        //        player.enabled = true;      //特定のコンポーネントやスクリプトが有効かを変える方法
-        //    }
-        //}
-        //else
-        //{
-        //    if (spaceKeyState == true)
-        //    {
-        //        //敵管理の処理を開始する
-        //        enemyGenMgr.SetActive(false);    //全体のアクティブを変える方法
-        //    }
-        //    else
-        //    {
-        //        //敵管理の処理を開始する
-        //        enemyGenMgr.SetActive(true);    //全体のアクティブを変える方法
-        //    }
-        //}
     }
 
     //-------------------------------------------------------
     //Private Method
     //-------------------------------------------------------
+
     /// <summary>
-    /// #実行内容
-    /// -お題生成
-    /// -お題表示
+    /// タスクを表示する処理
     /// </summary>
-    private void Init()
+    private void ShowTask()
     {
-        //EnemyMgrにお題生成の命令を出す(gameobjct型かstring型で作られたお題を返すもの)
-        taskObj = enemyMgr.GenerateTask();
         //お題を表示する(仮置きで白い画面を表示しておく)
         taskImg.enabled = true;
-        //かまえを表示する
-        kamaePanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// お題が出されているかを判定
+    /// </summary>
+    /// <returns>true:出されている / false:出されていない</returns>
+    private bool CheckTask()
+    {
+        if(taskObj != null)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// お題が表示されているかを判定
+    /// </summary>
+    /// <returns>true:表示されている / false:表示されていない</returns>
+    private bool CheckShowTask()
+    {
+        if (taskImg.enabled)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// お題の生成をEnemyMgrに指示し、もらったお題を画面に表示する
+    /// </summary>
+    private void GenerateTask()
+    {
+        //EnemyMgrにお題生成の命令を出し返り値にお題をもらう
+        taskObj = enemyMgr.GenerateTask();
+        //お題を画面に表示する
+        taskImg.enabled = true;
+    }
+
+    /// <summary>
+    /// 前回のキーの状態と比較し不一致なら更新してタイマーをリセットする
+    /// </summary>
+    /// <returns>現在のキーの状態</returns>
+    private bool SpaceKeyCheck()
+    {
+        if(prevSpaceKeyState != spaceKeyState)
+        {
+            prevSpaceKeyState = spaceKeyState;
+            timer = 0;
+        }
+        return spaceKeyState;
+    }
+
+    /// <summary>
+    /// 現在アクティブな敵はお題の敵かを判定
+    /// </summary>
+    /// <returns>true:一致 / false:不一致</returns>
+    private bool ActiveEnemyIsTask()
+    {
+        if(activeEnemyObj == taskObj)
+        {
+            return true;
+        }
+        return false;
     }
 
     //-------------------------------------------------------
