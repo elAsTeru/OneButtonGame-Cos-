@@ -4,9 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - TempEnemy1
-  - TempEnemy2
-  - TempEnemy3
+  - Map
+  - Enemy
   layers:
   - Default
   - TransparentFX
