@@ -66,7 +66,6 @@ public class GameMgr : MonoBehaviour
         //敵のスクリプトを確保
         enemyMgr = GameObject.Find("EnemyMgr").GetComponent<EnemyMgr>();
         waitTime = -1;
-        waitTime = -1;
 
         //-------------------------------------------------------
         //UI
@@ -109,7 +108,7 @@ public class GameMgr : MonoBehaviour
         else if (gameState == GameState.Play)
         {
             //スペースキーが押されている(かまえ状態)
-            if (SpaceKeyCheck())
+            if (spaceKeyState == true)
             {
                 //かまえが表示されていたら非表示にする
                 if (kamaePanel.activeSelf == true)
@@ -236,19 +235,18 @@ public class GameMgr : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 前回のキーの状態と比較し不一致なら更新してタイマーをリセットする
-    /// </summary>
-    /// <returns>現在のキーの状態</returns>
-    private bool SpaceKeyCheck()
-    {
-        if(prevSpaceKeyState != spaceKeyState)
-        {
-            prevSpaceKeyState = spaceKeyState;
-            timer = 0;
-        }
-        return spaceKeyState;
-    }
+    ///// <summary>
+    ///// 前回のキーの状態と比較し不一致なら
+    ///// </summary>
+    ///// <returns>現在のキーの状態</returns>
+    //private bool SpaceKeyCheck()
+    //{
+    //    if(prevSpaceKeyState != spaceKeyState)
+    //    {
+    //        prevSpaceKeyState = spaceKeyState;
+    //    }
+    //    return spaceKeyState;
+    //}
 
     /// <summary>
     /// 設定された範囲でランダムに時間を生成する
@@ -335,12 +333,16 @@ public class GameMgr : MonoBehaviour
     /// </summary>
     private void PrepNextTask()
     {
-        //お題が解除されてなければ
-        if(taskObj != null) { taskObj = null; }
+        //お題を初期化
+        taskObj = null;
         //タイマーをリセットする
         timer = 0;
         //お題クリアタイムをリセット
         taskClearTime = 0;
+        //前回のスペースの状態を初期化
+        prevSpaceKeyState = false;
+        //待機時間をリセット
+        waitTime = -1;
     }
 
     //-------------------------------------------------------
