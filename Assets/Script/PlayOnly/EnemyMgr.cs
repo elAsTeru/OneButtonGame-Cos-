@@ -10,10 +10,10 @@ public class EnemyMgr : MonoBehaviour
     [Tooltip("デバッグ用")][SerializeField] private short enemyTypeNum;
     [Tooltip("デバッグ用")][SerializeField] private float timer;
 
-    //ジェネレータ関連
-    [Header("Generator")]
-    [Tooltip("ジェネレータをまとめた空間")] private GameObject generatorSpace;
-    [Tooltip("デバッグ用")][SerializeField] private short generatorNum;
+    //アクティブ化関連
+    [Header("Activator")]
+    [Tooltip("アクティベータをまとめた空間")] private GameObject activateSpace;
+    [Tooltip("デバッグ用")][SerializeField] private short activatorNum;
 
     //オブジェクトプール関連
     [Header("Object Pool")]
@@ -27,9 +27,9 @@ public class EnemyMgr : MonoBehaviour
         //敵関連
         enemyTypeNum = (short)enemys.Count;                         //敵の種類を計測
 
-        //ジェネレータ関連
-        generatorSpace = this.transform.Find("GeneratePoints").gameObject;  //ジェネレータの空間を検索
-        generatorNum = (short)generatorSpace.transform.childCount;      //ジェネレータ数を計測
+        //アクティブ化関連
+        activateSpace = this.transform.Find("ActivatePoints").gameObject;  //ジェネレータの空間を検索
+        activatorNum = (short)activateSpace.transform.childCount;      //ジェネレータ数を計測
 
         //オブジェクトプール関連
         objectPool = GameObject.Find("ObjectPool");         //オブジェクトプールを探索
@@ -70,10 +70,9 @@ public class EnemyMgr : MonoBehaviour
         GameObject activateEnemyObj;
         //どの敵をアクティブ化するか？
         activateEnemyObj = poolSpace.transform.GetChild((short)Random.Range(0, enemyTypeNum)).gameObject;
-        //アクティブ化する場所を設定
-        activateEnemyObj.transform.position = generatorSpace.transform.GetChild(Random.Range(0, generatorNum)).position;
-        //アクティブ化
-        activateEnemyObj.SetActive(true);
+        //アクティブ化・アクティブ化する場所を設定
+        activateSpace.transform.GetChild(Random.Range(0, activatorNum)).GetComponent<ActivatePoint>().Activate(activateEnemyObj);
+       
         //アクティブ化した敵オブジェクトを返す
         return activateEnemyObj;
     }
@@ -94,4 +93,5 @@ public class EnemyMgr : MonoBehaviour
         }
         return false;
     }
+
 }
