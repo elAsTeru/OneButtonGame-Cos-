@@ -6,33 +6,36 @@ using UnityEngine.UI;
 public class Player : MonoBehaviour
 {
     GameMgr gameMgr;
-
-    public Sprite imageTh2;
-    public Sprite imageTh3;
-    public Image samurai;
+    Animator animator;
+    private float timer;
+ 
+    
 
     // Start is called before the first frame update
     void Start()
     {
         gameMgr = GameObject.Find("GameMgr").GetComponent<GameMgr>();
 
-        samurai= GameObject.Find("Image").GetComponent<Image>();
+        timer = 0.0f;
 
-        samurai.enabled = false;
+        transform.position = new Vector3(-5, -3, 0);
+
+        this.animator = GetComponent<Animator>();
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        
         //‚©‚Ü‚¦
         if (Input.GetKeyDown(KeyCode.Space))
         {
             
             gameMgr.pressSpace();
 
-            samurai.enabled = true;
-            samurai.sprite = imageTh2;
+            this.animator.SetTrigger("ReadyTrigger");
+         
 
         }
 
@@ -43,8 +46,20 @@ public class Player : MonoBehaviour
 
             gameMgr.ReleaseSpace();
 
-            samurai.enabled = true;
-            samurai.sprite = imageTh3;
+            this.animator.SetTrigger("SrashTrigger");
+
+            timer += Time.deltaTime;
+
+            transform.Translate(10, 0, 0);
+            if (timer >= 5.0f)
+            {
+                transform.position = new Vector3(-5, -3, 0);
+
+                timer = 0.0f;
+
+            }
         }
+        
+
     }
 }
