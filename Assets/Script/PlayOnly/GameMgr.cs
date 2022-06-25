@@ -100,6 +100,7 @@ public class GameMgr : MonoBehaviour
                 //ゲームモードを変更
                 if (spaceKeyState == false)
                 {
+                    player.SetIdolMode();
                     gameState = GameState.Play;
                 }
             }
@@ -110,6 +111,7 @@ public class GameMgr : MonoBehaviour
             //スペースキーが押されている(かまえ状態)
             if (spaceKeyState == true)
             {
+                player.SetKamaeMode();
                 //かまえが表示されていたら非表示にする
                 if (kamaePanel.activeSelf == true)
                 {
@@ -168,6 +170,7 @@ public class GameMgr : MonoBehaviour
             //スペースキーが押されていない(居合状態) && かまえ指示が非表示
             else if (!kamaePanel.activeSelf)
             {
+                player.SetIaiMode();
                 //アクティブ状態の敵がいなければ
                 if (activeEnemyObj == null)
                 {
@@ -211,7 +214,6 @@ public class GameMgr : MonoBehaviour
         }
         else if (gameState == GameState.Score)
         {
-            gameState = GameState.ThemeGenerate;
         }
     }
 

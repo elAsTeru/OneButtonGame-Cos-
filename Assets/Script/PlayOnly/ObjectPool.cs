@@ -107,4 +107,21 @@ public class ObjectPool : MonoBehaviour
         }
         return count;
     }
+
+    /// <summary>
+    /// 子にアクティブオブジェクトがあるか調べる
+    /// </summary>
+    /// <param name="_parent">親のトランスフォーム</param>
+    /// <returns>アクティブオブジェクトを返す</returns>
+    public GameObject FindActiveObjctInChild(Transform _parent)
+    {
+        foreach (Transform t in _parent)
+        {
+            if (t.gameObject.activeSelf)
+            {
+                return t.gameObject;
+            }
+        }
+        return null;
+    }
 }
