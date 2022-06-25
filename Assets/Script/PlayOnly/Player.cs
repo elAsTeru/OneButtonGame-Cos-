@@ -2,11 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class Player : MonoBehaviour
 {
     GameMgr gameMgr;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -17,21 +15,8 @@ public class Player : MonoBehaviour
     void Update()
     {
         //Ç©Ç‹Ç¶
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            
-            gameMgr.pressSpace();
-
-
-        }
-
-
+        if (Input.GetKeyDown(KeyCode.Space)) { gameMgr.pressSpace(); }
         //ãèçá
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-
-            gameMgr.ReleaseSpace(); 
-
-        }
+        if (Input.GetKeyUp(KeyCode.Space)) { gameMgr.ReleaseSpace(); }
     }
 }
