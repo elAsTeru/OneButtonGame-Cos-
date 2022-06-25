@@ -8,7 +8,7 @@ public class Player : MonoBehaviour
     GameMgr gameMgr;
     Animator animator;
     private float timer;
- 
+    
     
 
     // Start is called before the first frame update
@@ -27,7 +27,8 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
+        timer += Time.deltaTime;
         //‚©‚Ü‚¦
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -39,7 +40,7 @@ public class Player : MonoBehaviour
 
         }
 
-
+      
         //‹‡
         if (Input.GetKeyUp(KeyCode.Space))
         {
@@ -48,18 +49,20 @@ public class Player : MonoBehaviour
 
             this.animator.SetTrigger("SrashTrigger");
 
-            timer += Time.deltaTime;
-
             transform.Translate(10, 0, 0);
-            if (timer >= 5.0f)
+            if(transform.position.x>11)
             {
                 transform.position = new Vector3(-5, -3, 0);
-
-                timer = 0.0f;
-
             }
+            
         }
-        
+        if (timer >= 2.0f)
+        {
+         transform.position = new Vector3(-5, -3, 0);
+
+         timer = 0.0f;       
+
+        }
 
     }
 }
