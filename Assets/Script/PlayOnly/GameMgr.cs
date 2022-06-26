@@ -7,52 +7,50 @@ using UnityEngine.SceneManagement;
 public class GameMgr : MonoBehaviour
 {
     [Header("ゲームの設定")]
-    [Tooltip("課題の達成回数(読専)")][SerializeField] private int taskClearCounter;
+    [Tooltip("課題の達成回数(読専)")][SerializeField] private int clearCount;
     [Tooltip("残基の数")][SerializeField] private int lifeNum;
 
     [Header("プレイヤーの情報")]
     [Tooltip("C#割り当て確認用(読専)")][SerializeField]private Player player;
     [Tooltip("true:かまえ状態 / false:居合状態(読専)")][SerializeField] private bool spaceKeyState;
-    private bool prevSpaceKeyState; //前回のスペースキーの状態
     [Space(10)]
 
     [Header("敵の情報")]
     [Tooltip("C#割り当て確認用(読専)")][SerializeField] private EnemyMgr enemyMgr;
-    [Tooltip("お題の敵(読専)")][SerializeField] private GameObject taskObj;
-    [Tooltip("前回のお題の敵(読専)")][SerializeField] private GameObject prevTaskObj;
-    [Tooltip("現在の敵(読専)")][SerializeField] private GameObject activeEnemyObj;
+    [Tooltip("お題の敵(読専)")][SerializeField] private GameObject obj_task;
+    [Tooltip("現在の敵(読専)")][SerializeField] private GameObject obj_activeEnemy;
     [Tooltip("アクティブ化待機時間の範囲(x:最小時間 / y:最大時間)")][SerializeField] private Vector2 activateWaitTimeRange;
-    [Tooltip("お題以外が消えるまでの時間の範囲(x:最小時間 / y:最大時間)")][SerializeField] private Vector2 deactivateOtherTimeRange;
-    [Tooltip("お題が消えるまでの時間の範囲(x:最小時間 / y:最大時間)")][SerializeField] private Vector2 deactivateTaskTimeRange;
     [Tooltip("設定した範囲からランダムに取られた待機時間 / -1で設定なし(読専)")][SerializeField]private float waitTime;
-    [Tooltip("敵を倒すのにかかった時間")][SerializeField] private float taskClearTime;
-    [Tooltip("敵を倒すのにかかった時間の総合")][SerializeField] private float taskClearTimeTotal;
+    [Tooltip("敵を倒すのにかかった時間")][SerializeField] private float clearTime;
+    [Tooltip("敵を倒すのにかかった時間の総合")][SerializeField] private float clearTimeTotal;
     [Space(10)]
 
     [Header("UIの情報")]
-    private Image taskImg;   //お題表示の仮置き画像
+    [Tooltip("お題のキャンバス格納")][SerializeField]private GameObject obj_taskCanvas;
+    [Tooltip("かまえのキャンバス格納")][SerializeField] private GameObject obj_kamaeCanvas;
     [Tooltip("お題表示時間")] [SerializeField] private float showTaskTime;
     private bool showTaskFlag;  //true:タスク表示中/false:タスク非表示中
-    private GameObject kamaePanel;    //かまえ表示の仮置き
 
     [Header("共有して使用")]
     [SerializeField] private float timer;
 
-    enum GameState
+    enum GameMode
     {
-        ThemeGenerate,
-        Play,
-        Score,  //(命名あと回し)
+       GENERATE_TASK,      //お題を生成する
+       ACTIVATE_ENEMY,     //敵をアクティブ化する
+       GAME_MAIN,          //
+       GAME_FAILED,        //失敗
+       GAME_SUCCESS,       //成功
+       INIT,               //初期化(2回目以降のプレイに必要)
     }
     [Header("ゲーム進行情報")]
-    [Tooltip("現在のモード")][SerializeField]private GameState gameState;
+    [Tooltip("現在のモード")][SerializeField]private GameMode mode;
 
     void Start()
     {
         //-------------------------------------------------------
         //Game Settings
         //-------------------------------------------------------
-        taskClearCounter = 0;
 
         //-------------------------------------------------------
         //Player
@@ -70,151 +68,305 @@ public class GameMgr : MonoBehaviour
         //-------------------------------------------------------
         //UI
         //-------------------------------------------------------
-        //お題表示仮置きの画像を取得
-        taskImg = GameObject.Find("標的表示仮置き").GetComponent<Image>();
-        taskImg.enabled = false;           //非表示にしておく
-        kamaePanel = GameObject.Find("kamae");
-        kamaePanel.SetActive(false);
+        //お題キャンバスの取得と非表示
+        obj_taskCanvas = GameObject.Find("TaskCanvas").gameObject;
+        obj_taskCanvas.SetActive(false);
+        //かまえキャンバスをの取得と非表示
+        obj_kamaeCanvas = GameObject.Find("KamaeCanvas").gameObject;
+        obj_kamaeCanvas.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        //お題生成状態
-        if (gameState == GameState.ThemeGenerate)
+        if(mode == GameMode.GENERATE_TASK)
         {
-            //お題を生成
-            GenerateTask();
-
-            //デルタタイムを使用する判定を取る前に計測
-            timer += Time.deltaTime;
-            //一定時間を経過したら
-            if (timer > showTaskTime)
+            if (timer == 0)
             {
-                //お題の表示を消す
-                taskImg.enabled = false;
-                //かまえの操作指示を表示
-                kamaePanel.SetActive(true);
-                //使用したタイマーをリセットしておく
+                //プレイヤーをアイドル状態に
+                player.SetStateIdol();
+                //ランダムお題生成の中から除きたい敵を引数に、お題を生成
+                obj_task = enemyMgr.GenerateTask(obj_task);
+                //お題を表示
+                obj_taskCanvas.SetActive(true);
+                //時間の計測開始(これでこのif文内に入らなくなる)
+                timer += Time.deltaTime;
+            }
+            else if (timer <= showTaskTime)
+            {
+                //時間の計測を続ける
+                timer += Time.deltaTime;
+            }
+            else
+            {
+                //使い終わったのでリセット
                 timer = 0;
-                //ゲームモードを変更
-                if (spaceKeyState == false)
-                {
-                    player.SetIdolMode();
-                    gameState = GameState.Play;
-                }
+                //お題の表示を終わりかまえの操作指示を表示
+                obj_taskCanvas.SetActive(false);
+                obj_kamaeCanvas.SetActive(true);
+                //Activateに移行
+                mode = GameMode.ACTIVATE_ENEMY;
             }
         }
-        //ゲームプレイ状態
-        else if (gameState == GameState.Play)
+
+        if(mode == GameMode.ACTIVATE_ENEMY && spaceKeyState)
         {
-            //スペースキーが押されている(かまえ状態)
-            if (spaceKeyState == true)
+            if (timer == 0)
             {
-                player.SetKamaeMode();
-                //かまえが表示されていたら非表示にする
-                if (kamaePanel.activeSelf == true)
-                {
-                    kamaePanel.SetActive(false);
-                }
-
-                //アクティブ状態の敵がいなければ
-                if (activeEnemyObj == null)
-                {
-                    //待機時間を作成
-                    GenerateTimeRangeRandom(activateWaitTimeRange);
-                    //待機時間を経過したら
-                    if (waitDeltaTime(waitTime))
-                    {
-                        //ランダムでアクティブ化するようにenemyMgrに指示する
-                        activeEnemyObj = enemyMgr.ActivateEnemyRandom();
-                    }
-                }
-                else
-                {
-                    //アクティブ状態の敵がお題と一致
-                    if (activeEnemyObj == taskObj)
-                    {
-                        //成功時にクリアタイムとして使用する時間の計測開始
-                        taskClearTime += Time.deltaTime;
-                        //待機時間を作成
-                        GenerateTimeRangeRandom(deactivateTaskTimeRange);
-                        //待機時間を経過したら
-                        //-------------------------------------------------------
-                        //失敗(スペースキーが押された状態)
-                        //-------------------------------------------------------
-                        if (waitDeltaTime(waitTime))
-                        {
-                            //非アクティブ処理
-                            DeactivateEnemy();
-                            //失敗処理
-                            FailedTask();
-                        }
-                    }
-                    //-------------------------------------------------------
-                    //失敗回避(スペースキーが押された状態)
-                    //-------------------------------------------------------
-                    else
-                    {
-                        //待機時間を作成
-                        GenerateTimeRangeRandom(deactivateOtherTimeRange);
-                        //待機時間を経過したら
-                        if (waitDeltaTime(waitTime))
-                        {
-                            //非アクティブ処理
-                            DeactivateEnemy();
-                        }
-                    }
-                }
+                //かまえの操作指示を非表示
+                obj_kamaeCanvas.SetActive(false);
+                //プレイヤーを構え状態に
+                player.SetStateKamae();
+                //待機時間を設定された範囲内で作成
+                waitTime = GenerateTimeRangeRandom(activateWaitTimeRange);
+                //時間の計測開始
+                timer += Time.deltaTime;
             }
-            //スペースキーが押されていない(居合状態) && かまえ指示が非表示
-            else if (!kamaePanel.activeSelf)
+            else if (timer <= waitTime)
             {
-                player.SetIaiMode();
-                //アクティブ状態の敵がいなければ
-                if (activeEnemyObj == null)
+                timer += Time.deltaTime;
+            }
+            else
+            {
+                //使い終わったのでタイマーをリセット
+                timer = 0;
+                //敵をランダムにアクティブ化
+                obj_activeEnemy = enemyMgr.ActivateEnemyRandom();
+                //GAME_MAINに移行
+                mode = GameMode.GAME_MAIN;
+            }
+        }
+
+        if (mode == GameMode.GAME_MAIN)
+        {
+            if (obj_activeEnemy == obj_task)
+            {
+                //倒すのにかかった時間の記録開始
+                clearTime += Time.deltaTime;
+                if (spaceKeyState)
                 {
-                    //-------------------------------------------------------
-                    //失敗(スペースキーが離された状態)
-                    //-------------------------------------------------------
-                    //失敗処理
-                    FailedTask();
+                    if (!obj_activeEnemy.activeSelf)
+                    {
+                        //Failedに移行
+                        mode = GameMode.GAME_FAILED;
+                    }
                 }
                 else
                 {
-
+                    //プレイヤーを居合状態に
+                    player.SetStateIai();
                     //敵の位置を固定
-                    /*
-                    * 敵の位置を固定処理を書く
-                    */
-                    //-------------------------------------------------------
-                    //成功(スペースキーが離された状態)
-                    //-------------------------------------------------------
-
-                    //アクティブ状態の敵がお題と一致
-                    if (activeEnemyObj == taskObj)
+                    obj_activeEnemy.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                    //Successに移行
+                    mode = GameMode.GAME_SUCCESS;
+                }
+            }
+            else
+            {
+                if (spaceKeyState)
+                {
+                    if (!obj_activeEnemy.activeSelf)
                     {
-                        //成功処理
-                        SucceededTask();
-                        //非アクティブ処理
-                        DeactivateEnemy();
+                        //Activateに移行
+                        mode = GameMode.ACTIVATE_ENEMY;
                     }
-                    //-------------------------------------------------------
-                    //失敗(スペースキーが離された状態)
-                    //-------------------------------------------------------
-                    else
-                    {
-                        //非アクティブ処理
-                        DeactivateEnemy();
-                        //失敗処理
-                        FailedTask();
-                    }
+                }
+                else
+                {
+                    //プレイヤーを居合状態に
+                    player.SetStateIai();
+                    //敵の位置を固定
+                    obj_activeEnemy.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                    //Failedに移行
+                    mode = GameMode.GAME_FAILED;
                 }
             }
         }
-        else if (gameState == GameState.Score)
+
+        if (mode == GameMode.GAME_FAILED)
         {
+            //演出の仮置き
+            if (timer <= 3)
+            {
+                timer += Time.deltaTime;
+            }
+            else
+            {
+                timer = 0;
+                //残基があれば
+                if (lifeNum > 0)
+                {
+                    //1減らし
+                    --lifeNum;
+                    //Initに移行
+                    mode = GameMode.INIT;
+                }
+                else
+                {
+                    //Resultに遷移
+                    SceneManager.LoadScene("Result");
+                }
+            }
         }
+        else if (mode == GameMode.GAME_SUCCESS)
+        {
+            //演出仮置き
+            if (timer <= 3)
+            {
+                timer += Time.deltaTime;
+            }
+            else
+            {
+                timer = 0;
+                
+                //倒すのにかかった時間の総合を記録
+                clearTimeTotal += clearTime;
+                //クリア回数をカウント
+                ++clearCount;
+                //Initに移行
+                mode = GameMode.INIT;
+            }
+        }
+
+        if (mode == GameMode.INIT)
+        {
+            //演出仮置き時の間必要
+            obj_activeEnemy.SetActive(false);
+
+            //倒すのにかかった時間を初期化
+            clearTime = 0;
+            //Generateに移行
+            mode = GameMode.GENERATE_TASK;
+        }
+
+        ////お題生成状態
+        //if (gameState == GameState.ThemeGenerate)
+        //{
+        //    //お題を生成
+        //    GenerateTask();
+        //    player.SetStateIdol();
+        //    //デルタタイムを使用する判定を取る前に計測
+        //    timer += Time.deltaTime;
+        //    //一定時間を経過したら
+        //    if (timer > showTaskTime)
+        //    {
+        //        //お題の表示を消す
+        //        taskImg.enabled = false;
+        //        //かまえの操作指示を表示
+        //        kamaePanel.SetActive(true);
+        //        //使用したタイマーをリセットしておく
+        //        timer = 0;
+        //        //ゲームモードを変更
+        //        if (spaceKeyState == false)
+        //        {                  
+        //            gameState = GameState.Play;
+        //        }
+        //    }
+        //}
+        ////ゲームプレイ状態
+        //else if (gameState == GameState.Play)
+        //{
+        //    //スペースキーが押されている(かまえ状態)
+        //    if (spaceKeyState == true)
+        //    {
+        //        //かまえが表示されていたら非表示にする
+        //        if (kamaePanel.activeSelf == true)
+        //        {
+        //            player.SetStateKamae();
+        //            kamaePanel.SetActive(false);
+        //        }
+
+        //        //アクティブ状態の敵がいなければ
+        //        if (activeEnemyObj == null)
+        //        {
+        //            //待機時間を作成
+        //            GenerateTimeRangeRandom(activateWaitTimeRange);
+        //            //待機時間を経過したら
+        //            if (waitDeltaTime(waitTime))
+        //            {
+        //                //ランダムでアクティブ化するようにenemyMgrに指示する
+        //                activeEnemyObj = enemyMgr.ActivateEnemyRandom();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            //アクティブ状態の敵がお題と一致
+        //            if (activeEnemyObj == taskObj)
+        //            {
+        //                //成功時にクリアタイムとして使用する時間の計測開始
+        //                taskClearTime += Time.deltaTime;
+        //                //待機時間を作成
+        //                GenerateTimeRangeRandom(deactivateTaskTimeRange);
+        //                //待機時間を経過したら
+        //                //-------------------------------------------------------
+        //                //失敗(スペースキーが押された状態)
+        //                //-------------------------------------------------------
+        //                if (waitDeltaTime(waitTime))
+        //                {
+        //                    //失敗処理
+        //                    FailedTask();
+        //                }
+        //            }
+        //            //-------------------------------------------------------
+        //            //失敗回避(スペースキーが押された状態)
+        //            //-------------------------------------------------------
+        //            /*処理なし*/
+        //        }
+        //    }
+        //    //スペースキーが押されていない(居合状態) && かまえ指示が非表示
+        //    else if (!kamaePanel.activeSelf)
+        //    {
+        //        player.SetStateIai();
+        //        activeEnemyObj.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+        //        //アクティブ状態の敵がいなければ
+        //        if (activeEnemyObj == null)
+        //        {
+        //            //-------------------------------------------------------
+        //            //失敗(スペースキーが離された状態)
+        //            //-------------------------------------------------------
+        //            //失敗処理
+        //            FailedTask();
+        //        }
+        //        else
+        //        {
+
+        //            //敵の位置を固定
+        //            /*
+        //            * 敵の位置を固定処理を書く
+        //            */
+        //            //-------------------------------------------------------
+        //            //成功(スペースキーが離された状態)
+        //            //-------------------------------------------------------
+
+        //            //アクティブ状態の敵がお題と一致
+        //            if (activeEnemyObj == taskObj)
+        //            {
+        //                //成功処理
+        //                SucceededTask();
+        //                //非アクティブ処理
+        //                DeactivateEnemy();
+        //            }
+        //            //-------------------------------------------------------
+        //            //失敗(スペースキーが離された状態)
+        //            //-------------------------------------------------------
+        //            else
+        //            {
+        //                //非アクティブ処理
+        //                DeactivateEnemy();
+        //                //失敗処理
+        //                FailedTask();
+        //            }
+        //        }
+        //    }
+        //}
+        //else if (gameState == GameState.Score)
+        //{
+        //    //試験用で5秒待機するようにしてる
+        //    if (waitDeltaTime(5))
+        //    {
+        //        gameState = GameState.ThemeGenerate;
+        //    }
+        //}
     }
 
     //-------------------------------------------------------
@@ -222,129 +374,13 @@ public class GameMgr : MonoBehaviour
     //-------------------------------------------------------
 
     /// <summary>
-    /// お題が無ければ生成指示をEnemyMgrに出し、もらったお題を画面に表示する
-    /// </summary>
-    private void GenerateTask()
-    {
-        if (taskObj == null)
-        {
-            //EnemyMgrにお題生成の命令を出し返り値にお題をもらう
-            taskObj = enemyMgr.GenerateTask(prevTaskObj);
-            //前回のお題として記録する
-            prevTaskObj = taskObj;
-            //お題を画面に表示する
-            taskImg.enabled = true;
-        }
-    }
-
-    ///// <summary>
-    ///// 前回のキーの状態と比較し不一致なら
-    ///// </summary>
-    ///// <returns>現在のキーの状態</returns>
-    //private bool SpaceKeyCheck()
-    //{
-    //    if(prevSpaceKeyState != spaceKeyState)
-    //    {
-    //        prevSpaceKeyState = spaceKeyState;
-    //    }
-    //    return spaceKeyState;
-    //}
-
-    /// <summary>
-    /// 設定された範囲でランダムに時間を生成する
+    /// 設定された範囲でランダムに時間を作成する
     /// </summary>
     /// <param name="_timeRange">ランダムな時間の範囲</param>
-    private void GenerateTimeRangeRandom(Vector2 _timeRange)
+    /// <returns>作成された時間</returns>
+    private float GenerateTimeRangeRandom(Vector2 _timeRange)
     {
-        if (waitTime == -1)
-        {
-            timer = 0;
-            waitTime = Random.Range(_timeRange.x, _timeRange.y);
-        }
-    }
-
-    /// <summary>
-    /// 設定された時間まで処理をスルーするために使用
-    /// </summary>
-    /// <param name="_waitTime">待つ時間</param>
-    /// <returns>true:設定時間経過</returns>
-    private bool waitDeltaTime(float _waitTime)
-    {
-        timer += Time.deltaTime;
-        if(timer >= _waitTime)
-        {
-            timer = 0;
-            waitTime = -1;
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// 前回のアクティブオブジェクトとして記録し非アクティブに変更する
-    /// </summary>
-    private void DeactivateEnemy()
-    {
-        //非アクティブにする
-        activeEnemyObj.SetActive(false);
-        //何も設定されていない状態にする
-        activeEnemyObj = null;
-    }
-
-    /// <summary>
-    /// お題を成功したときに実行すべき処理
-    /// </summary>
-    private void SucceededTask()
-    {
-        //クリア回数をカウント
-        taskClearCounter++;
-        //お題成功時間
-        taskClearTime += Time.deltaTime;
-        //総合の時間を記録
-        taskClearTimeTotal += taskClearTime;
-        //次のお題の準備をする
-        PrepNextTask();
-        //スコアに移行
-        gameState = GameState.Score;
-    }
-
-    /// <summary>
-    /// お題を失敗したときに実行すべき処理
-    /// </summary>
-    private void FailedTask()
-    {
-        //残基があれば
-        if (lifeNum > 0)
-        {
-            //残基を減らし
-            lifeNum--;
-            //次のお題の準備をする
-            PrepNextTask();
-            //お題取得モードに移行する
-            gameState = GameState.ThemeGenerate;
-        }
-        else
-        {
-            //リザルトに遷移する
-            SceneManager.LoadScene("Result");
-        }
-    }
-
-    /// <summary>
-    /// 次のお題を取得するために実行すべき準備の処理
-    /// </summary>
-    private void PrepNextTask()
-    {
-        //お題を初期化
-        taskObj = null;
-        //タイマーをリセットする
-        timer = 0;
-        //お題クリアタイムをリセット
-        taskClearTime = 0;
-        //前回のスペースの状態を初期化
-        prevSpaceKeyState = false;
-        //待機時間をリセット
-        waitTime = -1;
+        return Random.Range(_timeRange.x, _timeRange.y);
     }
 
     //-------------------------------------------------------
