@@ -31,12 +31,14 @@ public class GameMgr : MonoBehaviour
     [Tooltip("かまえのキャンバス格納")][SerializeField] private GameObject obj_kamaeCanvas;
     [SerializeField] private SubResult subResult;
     [Tooltip("お題表示時間")] [SerializeField] private float showTaskTime;
+    [Tooltip("失敗表示用のキャンバスをアタッチ")][SerializeField]private GameObject obj_failedCanvas;
     private bool showTaskFlag;  //true:タスク表示中/false:タスク非表示中
 
     [Header("SE関連")]
     [Tooltip("ゲーム開始時にならす効果音")][SerializeField] AudioClip se_printTask;
     [Tooltip("ゲーム開始時にならす効果音")] [SerializeField] AudioClip se_split;
     [Tooltip("ゲーム開始時にならす効果音")] [SerializeField] AudioClip se_failed;
+    
     AudioSource audioSource;
 
     [Header("共有して使用")]
@@ -86,6 +88,9 @@ public class GameMgr : MonoBehaviour
         //途中スコアのキャンバスを取得と非表示
         subResult = GameObject.Find("SubResultCanvas").GetComponent<SubResult>();
         subResult.gameObject.SetActive(false);
+        //失敗キャンバスを取得
+        obj_failedCanvas = GameObject.Find("FailedCanvas");
+        obj_failedCanvas.SetActive(false);
         //-------------------------------------------------------
         //SE
         //-------------------------------------------------------
@@ -225,6 +230,10 @@ public class GameMgr : MonoBehaviour
             //演出の仮置き
             if (timer <= 5)
             {
+                if(timer == 0)
+                {
+                    obj_failedCanvas.SetActive(true);
+                }
                 audioSource.clip = se_failed;
                 audioSource.Play();
                 obj_activeEnemy.GetComponent<Enemy>().Failed();
@@ -236,6 +245,7 @@ public class GameMgr : MonoBehaviour
                 //残基があれば
                 if (lifeNum > 0)
                 {
+                    obj_failedCanvas.SetActive(false);
                     //1減らし
                     --lifeNum;
                     //Initに移行
