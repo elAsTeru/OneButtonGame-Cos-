@@ -76,22 +76,4 @@ public class EnemyMgr : MonoBehaviour
         //アクティブ化した敵オブジェクトを返す
         return activateEnemyObj;
     }
-
-    /// <summary>
-    /// 子にアクティブオブジェクトがあるか調べる
-    /// </summary>
-    /// <param name="_parent">親のトランスフォーム</param>
-    /// <returns>true:ある / false:ない</returns>
-    private bool FindActiveObjctInChild(Transform _parent)
-    {
-        foreach(Transform t in _parent)
-        {
-            if(t.gameObject.activeSelf)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }
