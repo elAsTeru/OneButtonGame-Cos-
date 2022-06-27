@@ -915,7 +915,7 @@ GameObject:
   - component: {fileID: 439293381}
   - component: {fileID: 439293382}
   m_Layer: 0
-  m_Name: enemy2
+  m_Name: enemy1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -977,7 +977,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: bf8bc78dcba9dcf409b6ae5132766341, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 38efff6e1270b8948b1131ffdc295985, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -999,7 +999,7 @@ GameObject:
   - component: {fileID: 446648112}
   - component: {fileID: 446648113}
   m_Layer: 0
-  m_Name: enemy3
+  m_Name: enemy2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1018,7 +1018,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1458316056}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &446648113
 SpriteRenderer:
@@ -1061,12 +1061,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 1e9feb752275b164489e547eb90b598b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 50dd5bb607cfee040b3ebc12df8ebee4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.77, y: 1.98}
+  m_Size: {x: 3.64, y: 2.4}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1283,7 +1283,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 14.198}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -96, y: -72}
+  m_AnchoredPosition: {x: -96, y: -72.000015}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &540436257
@@ -3006,9 +3006,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2144624609}
-  - {fileID: 439293381}
   - {fileID: 446648112}
+  - {fileID: 439293381}
+  - {fileID: 2144624609}
   m_Father: {fileID: 2128016605}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3908,7 +3908,7 @@ GameObject:
   - component: {fileID: 2144624609}
   - component: {fileID: 2144624610}
   m_Layer: 0
-  m_Name: enemy1
+  m_Name: enemy0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3927,7 +3927,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1458316056}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2144624610
 SpriteRenderer:
