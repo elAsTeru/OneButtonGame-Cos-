@@ -6,9 +6,21 @@ using UnityEngine.SceneManagement;
 
 public class GameMgr : MonoBehaviour
 {
+    [Header("アタッチ・値の設定が必要な項目")]
+    [Header("ゲームの設定")]
+    [Tooltip("残基の数")][SerializeField] private int lifeNum;
+
+    [Header("時間の設定")]
+    [Tooltip("お題表示時間")] [SerializeField] private float showTaskTime;
+
+    [Header("UI関連")]
+    [Tooltip("お題のキャンバス")]       [SerializeField]   private GameObject obj_taskCanvas;
+    [Tooltip("かまえのキャンバス")]     [SerializeField]   private GameObject obj_kamaeCanvas;
+    [Tooltip("途中スコアのキャンバス")] [SerializeField]   private GameObject obj_subResult;
+    [Tooltip("失敗のキャンバス")]       [SerializeField]   private GameObject obj_failedCanvas;
+
     [Header("ゲームの設定")]
     [Tooltip("課題の達成回数(読専)")][SerializeField] private int clearCount;
-    [Tooltip("残基の数")][SerializeField] private int lifeNum;
     [SerializeField] public GameObject staticScore;
 
     [Header("プレイヤーの情報")]
@@ -27,11 +39,6 @@ public class GameMgr : MonoBehaviour
     [Space(10)]
 
     [Header("UIの情報")]
-    [SerializeField]private TaskCanvas taskCanvas;
-    [Tooltip("かまえのキャンバス格納")][SerializeField] private GameObject obj_kamaeCanvas;
-    [SerializeField] private SubResult subResult;
-    [Tooltip("お題表示時間")] [SerializeField] private float showTaskTime;
-    [Tooltip("失敗表示用のキャンバスをアタッチ")][SerializeField]private GameObject obj_failedCanvas;
     private bool showTaskFlag;  //true:タスク表示中/false:タスク非表示中
 
     [Header("SE関連")]
@@ -57,12 +64,9 @@ public class GameMgr : MonoBehaviour
     [Header("ゲーム進行情報")]
     [Tooltip("現在のモード")][SerializeField]private GameMode mode;
 
+
     void Start()
     {
-        //-------------------------------------------------------
-        //Game Settings
-        //-------------------------------------------------------
-
         //-------------------------------------------------------
         //Player
         //-------------------------------------------------------
@@ -76,21 +80,6 @@ public class GameMgr : MonoBehaviour
         enemyMgr = GameObject.Find("EnemyMgr").GetComponent<EnemyMgr>();
         waitTime = -1;
 
-        //-------------------------------------------------------
-        //UI
-        //-------------------------------------------------------
-        //お題キャンバスの取得と非表示
-        taskCanvas = GameObject.Find("TaskCanvas").GetComponent<TaskCanvas>();
-        taskCanvas.gameObject.SetActive(false);
-        //かまえキャンバスをの取得と非表示
-        obj_kamaeCanvas = GameObject.Find("KamaeCanvas").gameObject;
-        obj_kamaeCanvas.SetActive(false);
-        //途中スコアのキャンバスを取得と非表示
-        subResult = GameObject.Find("SubResultCanvas").GetComponent<SubResult>();
-        subResult.gameObject.SetActive(false);
-        //失敗キャンバスを取得
-        obj_failedCanvas = GameObject.Find("FailedCanvas");
-        obj_failedCanvas.SetActive(false);
         //-------------------------------------------------------
         //SE
         //-------------------------------------------------------
@@ -127,10 +116,10 @@ public class GameMgr : MonoBehaviour
                 obj_task = enemyMgr.GenerateTask(obj_task);
                 timer += Time.deltaTime;
                 //お題を表示
-                taskCanvas.gameObject.SetActive(true);
+                obj_taskCanvas.gameObject.SetActive(true);
                 audioSource.clip = se_printTask;
                 audioSource.Play();
-                taskCanvas.printTask(obj_task);
+                obj_taskCanvas.GetComponent<TaskCanvas>().printTask(obj_task);
                 //時間の計測開始(これでこのif文内に入らなくなる)
             }
             else if (timer <= showTaskTime)
@@ -143,7 +132,7 @@ public class GameMgr : MonoBehaviour
                 //使い終わったのでリセット
                 timer = 0;
                 //お題の表示を終わりかまえの操作指示を表示
-                taskCanvas.gameObject.SetActive(false);
+                obj_taskCanvas.gameObject.SetActive(false);
                 //かまえ表示
                 obj_kamaeCanvas.SetActive(true);
                 //Activateに移行
@@ -275,8 +264,8 @@ public class GameMgr : MonoBehaviour
                     //クリア回数をカウント
                     ++clearCount;
                     //途中のリザルトを表示
-                    subResult.gameObject.SetActive(true);
-                    subResult.PrintSubScore(clearCount, clearTime);
+                    obj_subResult.gameObject.SetActive(true);
+                    obj_subResult.GetComponent<SubResult>().PrintSubScore(clearCount, clearTime);
                 }
                 timer += Time.deltaTime;
 
@@ -286,7 +275,7 @@ public class GameMgr : MonoBehaviour
             {
                 timer = 0;
                 //スコアの表示を非表示
-                subResult.gameObject.SetActive(false);
+                obj_subResult.gameObject.SetActive(false);
                 //Initに移行
                 mode = GameMode.INIT;
             }
