@@ -41,6 +41,7 @@ public class GameMgr : MonoBehaviour
 
     enum GameMode
     {
+       TUTORIAL,           //最初の一回だけ実行される
        GENERATE_TASK,      //お題を生成する
        ACTIVATE_ENEMY,     //敵をアクティブ化する
        GAME_MAIN,          //
@@ -92,6 +93,23 @@ public class GameMgr : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(mode == GameMode.TUTORIAL)
+        {
+            if(timer ==0)
+            {
+                timer += Time.deltaTime;
+            }
+            else if(timer <= 3)
+            {
+                timer += Time.deltaTime;
+            }
+            else
+            {
+                timer = 0;
+                mode = GameMode.GENERATE_TASK;
+            }
+
+        }
         if (mode == GameMode.GENERATE_TASK)
         {
             if (timer == 0)
@@ -232,6 +250,7 @@ public class GameMgr : MonoBehaviour
             {
                 if(timer == 0)
                 {
+                    obj_activeEnemy.GetComponent<Enemy>().Split();
                     //倒すのにかかった時間の総合を記録
                     clearTimeTotal += clearTime;
                     //クリア回数をカウント
