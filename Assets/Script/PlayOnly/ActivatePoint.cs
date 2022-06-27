@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ActivatePoint : MonoBehaviour
 {
@@ -22,8 +23,16 @@ public class ActivatePoint : MonoBehaviour
         
         _activateObj.SetActive(true);
 
+        _activateObj.GetComponent<SpriteRenderer>().color = InitAlpha(_activateObj.GetComponent<SpriteRenderer>().color);
+
         rb = _activateObj.GetComponent<Rigidbody2D>();
         
         rb.AddForce(force);
+    }
+
+    private Color InitAlpha(Color _color)
+    {
+        _color.a = 1.0f;
+        return _color;
     }
 }

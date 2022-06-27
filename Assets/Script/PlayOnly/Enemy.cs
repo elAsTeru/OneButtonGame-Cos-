@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.UI;
 
 public class Enemy : MonoBehaviour
 {
@@ -34,8 +35,6 @@ public class Enemy : MonoBehaviour
         obj_split2.SetActive(false);
         rb_split2 = obj_split2.GetComponent<Rigidbody2D>();
 
-
-
     }
     private void Start()
     {
@@ -59,7 +58,7 @@ public class Enemy : MonoBehaviour
     public void Split()
     {
         //力の量を作成
-        Vector2 vec2 = new Vector2(600, -600);
+        Vector2 vec2 = new Vector2(-600, 600);
         //生成する位置を設定
         obj_split1.transform.position = this.transform.position;
         obj_split2.transform.position = this.transform.position;
@@ -68,8 +67,21 @@ public class Enemy : MonoBehaviour
         obj_split2.SetActive(true);
         //
         this.gameObject.SetActive(false);
+        //力をリセットしてから
+        rb_split1.AddForce(Vector2.zero);
+        rb_split2.AddForce(Vector2.zero);
         //力を加える
         rb_split1.AddForce(vec2);
         rb_split2.AddForce(-vec2);
+    }
+    public void Failed()
+    {
+        this.gameObject.GetComponent<SpriteRenderer>().color = HalfAlpha(this.gameObject.GetComponent<SpriteRenderer>().color);
+    }
+
+    private Color HalfAlpha(Color _color)
+    {
+        _color.a = _color.a / 2;
+        return _color;
     }
 }
