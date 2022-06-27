@@ -796,6 +796,8 @@ MonoBehaviour:
   subResult: {fileID: 0}
   showTaskTime: 5
   se_printTask: {fileID: 8300000, guid: a5811de95647f1a4a93167cbb3b24803, type: 3}
+  se_split: {fileID: 8300000, guid: 450998dae801177479f12cd49fd52c9c, type: 3}
+  se_failed: {fileID: 8300000, guid: 3c9bc1b695a691245b7a2d154fa88b71, type: 3}
   timer: 0
   mode: 0
 --- !u!82 &330957514

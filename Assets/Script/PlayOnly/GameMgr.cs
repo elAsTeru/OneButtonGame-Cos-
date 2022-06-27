@@ -34,6 +34,8 @@ public class GameMgr : MonoBehaviour
 
     [Header("SE関連")]
     [Tooltip("ゲーム開始時にならす効果音")][SerializeField] AudioClip se_printTask;
+    [Tooltip("ゲーム開始時にならす効果音")] [SerializeField] AudioClip se_split;
+    [Tooltip("ゲーム開始時にならす効果音")] [SerializeField] AudioClip se_failed;
     AudioSource audioSource;
 
     [Header("共有して使用")]
@@ -221,8 +223,11 @@ public class GameMgr : MonoBehaviour
         if (mode == GameMode.GAME_FAILED)
         {
             //演出の仮置き
-            if (timer <= 3)
+            if (timer <= 5)
             {
+                audioSource.clip = se_failed;
+                audioSource.Play();
+                obj_activeEnemy.GetComponent<Enemy>().Failed();
                 timer += Time.deltaTime;
             }
             else
@@ -246,10 +251,13 @@ public class GameMgr : MonoBehaviour
         else if (mode == GameMode.GAME_SUCCESS)
         {
             //演出仮置き
-            if (timer <= 3)
+            if (timer <= 5)
             {
                 if(timer == 0)
                 {
+                    audioSource.clip = se_split;
+                    audioSource.Play();
+                    //敵を分裂させる
                     obj_activeEnemy.GetComponent<Enemy>().Split();
                     //倒すのにかかった時間の総合を記録
                     clearTimeTotal += clearTime;
