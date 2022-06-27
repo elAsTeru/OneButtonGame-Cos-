@@ -9,6 +9,7 @@ public class GameMgr : MonoBehaviour
     [Header("ゲームの設定")]
     [Tooltip("課題の達成回数(読専)")][SerializeField] private int clearCount;
     [Tooltip("残基の数")][SerializeField] private int lifeNum;
+    [SerializeField] public GameObject staticScore;
 
     [Header("プレイヤーの情報")]
     [Tooltip("C#割り当て確認用(読専)")][SerializeField]private Player player;
@@ -87,7 +88,6 @@ public class GameMgr : MonoBehaviour
         //SE
         //-------------------------------------------------------
         audioSource = GetComponent<AudioSource>();
-
     }
 
     // Update is called once per frame
@@ -238,6 +238,7 @@ public class GameMgr : MonoBehaviour
                 }
                 else
                 {
+                    staticScore.GetComponent<StaticScore>().ScoreCheck(clearCount, clearTimeTotal);
                     //Resultに遷移
                     SceneManager.LoadScene("Result");
                 }
