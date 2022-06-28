@@ -65,11 +65,11 @@ public class Enemy : MonoBehaviour
         //アクティブに
         obj_split1.SetActive(true);
         obj_split2.SetActive(true);
-        //
-        this.gameObject.SetActive(false);
         //力をリセットしてから
-        rb_split1.AddForce(Vector2.zero);
-        rb_split2.AddForce(Vector2.zero);
+        rb_split1.velocity = Vector2.zero;
+        rb_split2.velocity = Vector2.zero;
+        //自分を非アクティブにする
+        this.gameObject.SetActive(false);
         //力を加える
         rb_split1.AddForce(vec2);
         rb_split2.AddForce(-vec2);
